@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:s="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-2.0.4.xsd"
+	default-autowire="byType" default-lazy-init="true">
+
+	<s:http auto-config="true" access-decision-manager-ref="accessDecisionManager">
+	    <!--intercept-url pattern="/images/*" filters="none"/>
+        <s:intercept-url pattern="/styles/*" filters="none"/>
+        <s:intercept-url pattern="/scripts/*" filters="none"/>
+        <s:intercept-url pattern="/admin/*" access="ROLE_ADMIN"/>
+        <s:intercept-url pattern="/passwordHint.html*" access="ROLE_ANONYMOUS,ROLE_ADMIN,ROLE_USER"/>
+        <s:intercept-url pattern="/signup.html*" access="ROLE_ANONYMOUS,ROLE_ADMIN,ROLE_USER"/>
+        <s:intercept-url pattern="/a4j.res/*.html*" access="ROLE_ANONYMOUS,ROLE_ADMIN,ROLE_USER"/-->
+	
+	
+	
+		<s:form-login login-page="/login.jsp" 
+		              default-target-url="/"
+		              authentication-failure-url="/login.jsp?error=true"
+		              login-processing-url="/j_security_check" />
+		<s:logout logout-success-url="/" />
+		<s:remember-me key="e37f4b31-0c45-11dd-bd0b-0800200c9a66" user-service-ref="userDao"/>
+	</s:http>
+
+	<s:authentication-provider user-service-ref="userDao">
+		<!-- s:password-encoder hash="plaintext" /-->
+		<s:password-encoder ref="passwordEncoder" />
+	</s:authentication-provider>
+
+	<bean id="filterSecurityInterceptor" class="org.springframework.security.intercept.web.FilterSecurityInterceptor">
+		<s:custom-filter before="FILTER_SECURITY_INTERCEPTOR" />
+		<property name="accessDecisionManager" ref="accessDecisionManager" />
+		<property name="objectDefinitionSource" ref="databaseDefinitionSource" />
+		<!--property name="objectDefinitionSource">
+            <value>
+                PATTERN_TYPE_APACHE_ANT
+                /admin/*=ROLE_ADMIN
+                /passwordHint.html*=ROLE_ANONYMOUS,ROLE_ADMIN,ROLE_USER
+                /signup.html*=ROLE_ANONYMOUS,ROLE_ADMIN,ROLE_USER
+                /a4j.res/*.html*=ROLE_ANONYMOUS,ROLE_ADMIN,ROLE_USER 
+                /**/*.html*=ROLE_ADMIN,ROLE_USER
+            </value>
+        </property-->
+	</bean>
+
+	<bean id="databaseDefinitionSource" class="com.zjnan.app.security.spring.DefinitionSourceFactoryBean">
+		<property name="resourceDetailService" ref="resourceDetailService" />
+	</bean>
+	
+	<bean id="resourceDetailService" class="com.zjnan.app.security.spring.ResourceDetailServiceImpl" />
+
+	<bean id="accessDecisionManager" class="org.springframework.security.vote.AffirmativeBased">
+		<property name="decisionVoters">
+			<list>
+				<bean class="org.springframework.security.vote.RoleVoter">
+					<property name="rolePrefix" value="A_" />
+				</bean>
+				<bean class="org.springframework.security.vote.AuthenticatedVoter" />
+			</list>
+		</property>
+	</bean>
+</beans>
